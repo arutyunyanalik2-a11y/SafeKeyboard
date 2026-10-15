@@ -3,10 +3,13 @@ package com.example.safekeyboard
 import android.graphics.Color
 import android.inputmethodservice.InputMethodService
 import android.media.MediaPlayer
+import android.os.Handler
+import android.os.Looper
 import android.view.KeyEvent
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
+import java.util.Locale
 
 class MyKeyboardService : InputMethodService() {
 
@@ -17,11 +20,22 @@ class MyKeyboardService : InputMethodService() {
 
     private enum class Language { RU, HY, EN }
     private var currentLanguage = Language.RU
+    private var isSymbols = false
+    private var isUppercase = false // Флаг режима заглавных букв
+
+    private lateinit var keyboardMainLayout: LinearLayout
+    private lateinit var alarmLayout: LinearLayout
+    private lateinit var btnStopAlarm: Button
 
     private lateinit var row1: LinearLayout
     private lateinit var row2: LinearLayout
     private lateinit var row3: LinearLayout
     private lateinit var btnLanguage: Button
+    private lateinit var btnSymbolToggle: Button
+    private lateinit var btnShift: Button
+
+    private val handler = Handler(Looper.getMainLooper())
+    private var enableButtonRunnable: Runnable? = null
 
     // Раскладки клавиатуры по рядам для каждого языка
     private val ruRows = listOf(
@@ -42,19 +56,30 @@ class MyKeyboardService : InputMethodService() {
         listOf("z", "x", "c", "v", "b", "n", "m")
     )
 
+    // Раскладка цифр и спецсимволов
+    private val symbolRows = listOf(
+        listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
+        listOf("@", "#", "$", "_", "&", "-", "+", "(", ")"),
+        listOf("*", "\"", "'", ":", ";", "!", "?", "/")
+    )
+
     override fun onCreate() {
         super.onCreate()
-        // Загружаем аудио из res/raw/secret_sound.mp3
-        mediaPlayer = MediaPlayer.create(this, R.raw.secret_sound)
     }
 
     override fun onCreateInputView(): View {
         val view = layoutInflater.inflate(R.layout.keyboard_view, null)
 
+        keyboardMainLayout = view.findViewById(R.id.keyboard_main_layout)
+        alarmLayout = view.findViewById(R.id.alarm_layout)
+        btnStopAlarm = view.findViewById(R.id.btn_stop_alarm)
+
         row1 = view.findViewById(R.id.row_1)
         row2 = view.findViewById(R.id.row_2)
         row3 = view.findViewById(R.id.row_3)
         btnLanguage = view.findViewById(R.id.btn_language)
+        btnSymbolToggle = view.findViewById(R.id.btn_symbol_toggle)
+        btnShift = view.findViewById(R.id.btn_shift)
 
         val btnDelete = view.findViewById<Button>(R.id.btn_delete)
         val btnSpace = view.findViewById<Button>(R.id.btn_space)
@@ -84,15 +109,71 @@ class MyKeyboardService : InputMethodService() {
             currentInputConnection?.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
         }
 
+        // Кнопка переключения символов/цифр
+        btnSymbolToggle.setOnClickListener {
+            isSymbols = !isSymbols
+            btnSymbolToggle.text = if (isSymbols) currentLanguage.name else "123"
+            updateKeyboardLayout()
+        }
+
+        // Кнопка Shift для заглавных букв
+        btnShift.setOnClickListener {
+            if (!isSymbols) {
+                isUppercase = !isUppercase
+                btnShift.setBackgroundColor(if (isUppercase) Color.parseColor("#1976D2") else Color.parseColor("#333333"))
+                updateKeyboardLayout()
+            }
+        }
+
         // Кнопка глобуса для переключения языков
         btnLanguage.setOnClickListener {
-            toggleLanguage()
+            if (!isSymbols) {
+                toggleLanguage()
+            }
+        }
+
+        // Обработчик большой кнопки остановки музыки
+        btnStopAlarm.setOnClickListener {
+            stopAlarmAndRestoreKeyboard()
         }
 
         // Первоначальное построение раскладки
         updateKeyboardLayout()
 
         return view
+    }
+
+    private fun triggerAlarm() {
+        mediaPlayer?.release()
+        mediaPlayer = MediaPlayer.create(this, R.raw.secret_sound)
+        mediaPlayer?.start()
+
+        keyboardMainLayout.visibility = View.GONE
+        alarmLayout.visibility = View.VISIBLE
+
+        btnStopAlarm.isEnabled = false
+        btnStopAlarm.text = "ОСТАНОВИТЬ МУЗЫКУ (Ждите... 15с)"
+
+        if (enableButtonRunnable != null) {
+            handler.removeCallbacks(enableButtonRunnable!!)
+        }
+
+        enableButtonRunnable = Runnable {
+            btnStopAlarm.isEnabled = true
+            btnStopAlarm.text = "ОСТАНОВИТЬ МУЗЫКУ"
+        }
+        handler.postDelayed(enableButtonRunnable!!, 15000L)
+    }
+
+    private fun stopAlarmAndRestoreKeyboard() {
+        if (enableButtonRunnable != null) {
+            handler.removeCallbacks(enableButtonRunnable!!)
+        }
+        mediaPlayer?.release()
+        mediaPlayer = null
+
+        alarmLayout.visibility = View.GONE
+        keyboardMainLayout.visibility = View.VISIBLE
     }
 
     private fun toggleLanguage() {
@@ -110,10 +191,14 @@ class MyKeyboardService : InputMethodService() {
         row2.removeAllViews()
         row3.removeAllViews()
 
-        val activeRows = when (currentLanguage) {
-            Language.RU -> ruRows
-            Language.HY -> hyRows
-            Language.EN -> enRows
+        val activeRows = if (isSymbols) {
+            symbolRows
+        } else {
+            when (currentLanguage) {
+                Language.RU -> ruRows
+                Language.HY -> hyRows
+                Language.EN -> enRows
+            }
         }
 
         populateRow(row1, activeRows[0])
@@ -123,8 +208,14 @@ class MyKeyboardService : InputMethodService() {
 
     private fun populateRow(rowLayout: LinearLayout, keys: List<String>) {
         for (keyText in keys) {
+            val displayChar = if (!isSymbols && isUppercase) {
+                keyText.uppercase(Locale.getDefault())
+            } else {
+                keyText
+            }
+
             val button = Button(this).apply {
-                text = keyText
+                text = displayChar
                 layoutParams = LinearLayout.LayoutParams(
                     0,
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -136,7 +227,7 @@ class MyKeyboardService : InputMethodService() {
                 setTextColor(Color.WHITE)
                 textSize = 16f
                 setOnClickListener {
-                    currentInputConnection?.commitText(keyText, 1)
+                    currentInputConnection?.commitText(displayChar, 1)
                 }
             }
             rowLayout.addView(button)
@@ -155,12 +246,8 @@ class MyKeyboardService : InputMethodService() {
 
         for (trigger in triggerWords) {
             if (textBeforeCursor.contains(trigger)) {
-                // Включаем аудио-предупреждение
-                mediaPlayer?.seekTo(0)
-                mediaPlayer?.start()
-
-                // Мгновенно стираем весь набранный текст
                 ic.deleteSurroundingText(textBeforeCursor.length, 0)
+                triggerAlarm()
                 break
             }
         }
@@ -168,6 +255,9 @@ class MyKeyboardService : InputMethodService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        if (enableButtonRunnable != null) {
+            handler.removeCallbacks(enableButtonRunnable!!)
+        }
         mediaPlayer?.release()
     }
 }

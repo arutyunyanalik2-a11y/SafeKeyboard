@@ -1,128 +1,170 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/keyboard_background"
-    android:orientation="vertical"
-    android:padding="8dp">
+    android:background="@drawable/keyboard_background">
 
-    <!-- Верхняя панель: символы, запятая, точка, стереть -->
+    <!-- Основная клавиатура -->
     <LinearLayout
+        android:id="@+id/keyboard_main_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <!-- Верхняя панель: символы, запятая, точка, стереть -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="4dp">
+
+            <Button
+                android:id="@+id/btn_symbol_toggle"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:backgroundTint="#333333"
+                android:textColor="#FFFFFF"
+                android:text="123"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btn_comma"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:backgroundTint="#333333"
+                android:textColor="#FFFFFF"
+                android:text="," />
+
+            <Button
+                android:id="@+id/btn_dot"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:backgroundTint="#333333"
+                android:textColor="#FFFFFF"
+                android:text="." />
+
+            <Button
+                android:id="@+id/btn_delete"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1.5"
+                android:layout_marginStart="4dp"
+                android:backgroundTint="#D32F2F"
+                android:textColor="#FFFFFF"
+                android:text="⌫ Стереть" />
+        </LinearLayout>
+
+        <!-- Ряд 1 для букв -->
+        <LinearLayout
+            android:id="@+id/row_1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Ряд 2 для букв -->
+        <LinearLayout
+            android:id="@+id/row_2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Ряд 3 для букв -->
+        <LinearLayout
+            android:id="@+id/row_3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Нижний ряд: Глобус, Шифт, Пробел, Ввод -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/btn_language"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1.0"
+                android:backgroundTint="#222222"
+                android:textColor="#FFFFFF"
+                android:text="🌐 RU"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btn_shift"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1.0"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:backgroundTint="#333333"
+                android:textColor="#FFFFFF"
+                android:text="⇧"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btn_space"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="2.5"
+                android:layout_marginEnd="4dp"
+                android:backgroundTint="#444444"
+                android:textColor="#FFFFFF"
+                android:text="пробел"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/btn_enter"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="2.0"
+                android:backgroundTint="#1976D2"
+                android:textColor="#FFFFFF"
+                android:text="↵ Ввод"
+                android:textAllCaps="false" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Экран тревоги с большой кнопкой остановки музыки -->
+    <LinearLayout
+        android:id="@+id/alarm_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#E6111111"
         android:gravity="center"
-        android:layout_marginBottom="4dp">
+        android:padding="16dp"
+        android:visibility="gone">
 
         <Button
-            android:id="@+id/btn_symbol_toggle"
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:backgroundTint="#333333"
-            android:textColor="#FFFFFF"
-            android:text="123"
-            android:textAllCaps="false" />
-
-        <Button
-            android:id="@+id/btn_comma"
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:layout_marginStart="4dp"
-            android:backgroundTint="#333333"
-            android:textColor="#FFFFFF"
-            android:text="," />
-
-        <Button
-            android:id="@+id/btn_dot"
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1"
-            android:layout_marginStart="4dp"
-            android:backgroundTint="#333333"
-            android:textColor="#FFFFFF"
-            android:text="." />
-
-        <Button
-            android:id="@+id/btn_delete"
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            android:layout_weight="1.5"
-            android:layout_marginStart="4dp"
+            android:id="@+id/btn_stop_alarm"
+            android:layout_width="match_parent"
+            android:layout_height="110dp"
             android:backgroundTint="#D32F2F"
             android:textColor="#FFFFFF"
-            android:text="⌫ Стереть" />
-    </LinearLayout>
-
-    <!-- Ряд 1 для букв -->
-    <LinearLayout
-        android:id="@+id/row_1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="4dp" />
-
-    <!-- Ряд 2 для букв -->
-    <LinearLayout
-        android:id="@+id/row_2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="4dp" />
-
-    <!-- Ряд 3 для букв -->
-    <LinearLayout
-        android:id="@+id/row_3"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="4dp" />
-
-    <!-- Нижний ряд: Глобус, Пробел, Ввод -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center">
-
-        <Button
-            android:id="@+id/btn_language"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1.2"
-            android:backgroundTint="#222222"
-            android:textColor="#FFFFFF"
-            android:text="🌐 RU"
+            android:textSize="18sp"
+            android:text="ОСТАНОВИТЬ МУЗЫКУ (Ждите... 15с)"
             android:textAllCaps="false" />
 
-        <Button
-            android:id="@+id/btn_space"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="3.8"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp"
-            android:backgroundTint="#444444"
-            android:textColor="#FFFFFF"
-            android:text="пробел"
-            android:textAllCaps="false" />
-
-        <Button
-            android:id="@+id/btn_enter"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1.5"
-            android:backgroundTint="#1976D2"
-            android:textColor="#FFFFFF"
-            android:text="↵" />
     </LinearLayout>
 
-</LinearLayout>
+</FrameLayout>
