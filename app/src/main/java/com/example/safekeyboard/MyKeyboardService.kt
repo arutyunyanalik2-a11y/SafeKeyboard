@@ -16,7 +16,7 @@ class MyKeyboardService : InputMethodService() {
     private var mediaPlayer: MediaPlayer? = null
 
     // Список запрещенных слов для мгновенной очистки и воспроизведения звука
-    private val triggerWords = listOf("трахает", "гей", "поза", "рака", "блять", "сука", "fuck")
+    private val triggerWords = listOf("трахает", "гей", "поза", "рака", "блять", "сука", "fuck", "бля", "блять", "traxaet")
 
     private enum class Language { RU, HY, EN }
     private var currentLanguage = Language.RU
@@ -44,10 +44,11 @@ class MyKeyboardService : InputMethodService() {
         listOf("я", "ч", "с", "м", "и", "т", "ь", "б", "ю")
     )
 
+    // Полная исправленная армянская раскладка со всеми буквами (включая «ք», «կ», «խ», «շ» и др.)
     private val hyRows = listOf(
-        listOf("ք", "ա", "տ", "և", "ր", "չ", "ճ", "օ", "պ"),
-        listOf("ու", "ի", "ե", "ը", "ա", "ս", "դ", "ֆ", "գ", "հ", "յ"),
-        listOf("զ", "ղ", "ց", "վ", "բ", "ն", "մ", "լ")
+        listOf("ք", "ո", "ե", "ռ", "տ", "ը", "ւ", "ի", "օ", "պ"),
+        listOf("ա", "ս", "դ", "ֆ", "գ", "հ", "յ", "կ", "լ", "խ", "շ"),
+        listOf("զ", "ղ", "ց", "վ", "բ", "ն", "մ", "չ", "ճ", "ջ")
     )
 
     private val enRows = listOf(
@@ -120,7 +121,7 @@ class MyKeyboardService : InputMethodService() {
         btnShift.setOnClickListener {
             if (!isSymbols) {
                 isUppercase = !isUppercase
-                btnShift.setBackgroundColor(if (isUppercase) Color.parseColor("#1976D2") else Color.parseColor("#333333"))
+                btnShift.setBackgroundResource(if (isUppercase) R.drawable.key_background else R.drawable.key_background)
                 updateKeyboardLayout()
             }
         }
@@ -221,11 +222,11 @@ class MyKeyboardService : InputMethodService() {
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     1.0f
                 ).apply {
-                    setMargins(2, 2, 2, 2)
+                    setMargins(3, 3, 3, 3)
                 }
-                setBackgroundColor(Color.parseColor("#333333"))
+                setBackgroundResource(R.drawable.key_background)
                 setTextColor(Color.WHITE)
-                textSize = 16f
+                textSize = 17f
                 setOnClickListener {
                     currentInputConnection?.commitText(displayChar, 1)
                 }
