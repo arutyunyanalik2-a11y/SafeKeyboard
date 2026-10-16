@@ -1,6 +1,8 @@
 package com.example.safekeyboard
 
+import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.RippleDrawable
 import android.inputmethodservice.InputMethodService
 import android.media.MediaPlayer
 import android.os.Handler
@@ -16,12 +18,13 @@ class MyKeyboardService : InputMethodService() {
     private var mediaPlayer: MediaPlayer? = null
 
     // Список запрещенных слов для мгновенной очистки и воспроизведения звука
-    private val triggerWords = listOf("трахает", "гей", "поза", "рака", "блять", "сука", "fuck", "бля", "блять", "traxaet")
+    private val triggerWords = listOf("трахает", "гей", "поза", "рака", "блять", "сука", "fuck", "бля", "traxaet")
 
     private enum class Language { RU, HY, EN }
     private var currentLanguage = Language.RU
     private var isSymbols = false
     private var isUppercase = false // Флаг режима заглавных букв
+    private var isRippleOrange = true // Флаг для чередования цветов анимации (оранжевый / синий)
 
     private lateinit var keyboardMainLayout: LinearLayout
     private lateinit var alarmLayout: LinearLayout
@@ -37,20 +40,22 @@ class MyKeyboardService : InputMethodService() {
     private val handler = Handler(Looper.getMainLooper())
     private var enableButtonRunnable: Runnable? = null
 
-    // Раскладки клавиатуры по рядам для каждого языка
+    // Полные и аккуратные раскладки клавиатуры для каждого языка
+// Полная русская раскладка (33 буквы)
     private val ruRows = listOf(
-        listOf("й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з", "х"),
+        listOf("й", "ц", "у", "к", "е", "н", "г", "ш", "щ", "з", "х", "ъ"),
         listOf("ф", "ы", "в", "а", "п", "р", "о", "л", "д", "ж", "э"),
-        listOf("я", "ч", "с", "м", "и", "т", "ь", "б", "ю")
+        listOf("я", "ч", "с", "м", "и", "т", "ь", "б", "ю", "ё")
     )
 
-    // Полная исправленная армянская раскладка со всеми буквами (включая «ք», «կ», «խ», «շ» и др.)
+    // Полная армянская раскладка (все 39 букв, включая добавленные «է», «թ», «ժ», «ձ», «փ», а также «ր» и «և»)
     private val hyRows = listOf(
-        listOf("ք", "ո", "ե", "ռ", "տ", "ը", "ւ", "ի", "օ", "պ"),
-        listOf("ա", "ս", "դ", "ֆ", "գ", "հ", "յ", "կ", "լ", "խ", "շ"),
-        listOf("զ", "ղ", "ց", "վ", "բ", "ն", "մ", "չ", "ճ", "ջ")
+        listOf("ք", "ո", "ե", "ռ", "տ", "ը", "ւ", "ի", "օ", "պ", "է", "թ", "ժ"),
+        listOf("ա", "ս", "դ", "ֆ", "գ", "հ", "յ", "կ", "լ", "խ", "շ", "և"),
+        listOf("զ", "ղ", "ց", "վ", "բ", "ն", "մ", "չ", "ճ", "ջ", "ծ", "ր", "ձ", "փ")
     )
 
+    // Полная английская раскладка (26 букв)
     private val enRows = listOf(
         listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p"),
         listOf("a", "s", "d", "f", "g", "h", "j", "k", "l"),
@@ -60,8 +65,8 @@ class MyKeyboardService : InputMethodService() {
     // Раскладка цифр и спецсимволов
     private val symbolRows = listOf(
         listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"),
-        listOf("@", "#", "$", "_", "&", "-", "+", "(", ")"),
-        listOf("*", "\"", "'", ":", ";", "!", "?", "/")
+        listOf("@", "#", "$", "_", "&", "-", "+", "(", ")", "<", ">"),
+        listOf("*", "\"", "'", ":", ";", "!", "?", "/", "=")
     )
 
     override fun onCreate() {
@@ -88,30 +93,36 @@ class MyKeyboardService : InputMethodService() {
         val btnComma = view.findViewById<Button>(R.id.btn_comma)
         val btnDot = view.findViewById<Button>(R.id.btn_dot)
 
-        // Обработчики служебных клавиш
+        // Обработчики служебных клавиш с обновлением цвета ripple-анимации
         btnDelete.setOnClickListener {
+            updateRippleColor(it)
             currentInputConnection?.deleteSurroundingText(1, 0)
         }
 
         btnSpace.setOnClickListener {
+            updateRippleColor(it)
             currentInputConnection?.commitText(" ", 1)
         }
 
         btnComma.setOnClickListener {
+            updateRippleColor(it)
             currentInputConnection?.commitText(",", 1)
         }
 
         btnDot.setOnClickListener {
+            updateRippleColor(it)
             currentInputConnection?.commitText(".", 1)
         }
 
         btnEnter.setOnClickListener {
+            updateRippleColor(it)
             currentInputConnection?.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
             currentInputConnection?.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER))
         }
 
         // Кнопка переключения символов/цифр
         btnSymbolToggle.setOnClickListener {
+            updateRippleColor(it)
             isSymbols = !isSymbols
             btnSymbolToggle.text = if (isSymbols) currentLanguage.name else "123"
             updateKeyboardLayout()
@@ -119,15 +130,16 @@ class MyKeyboardService : InputMethodService() {
 
         // Кнопка Shift для заглавных букв
         btnShift.setOnClickListener {
+            updateRippleColor(it)
             if (!isSymbols) {
                 isUppercase = !isUppercase
-                btnShift.setBackgroundResource(if (isUppercase) R.drawable.key_background else R.drawable.key_background)
                 updateKeyboardLayout()
             }
         }
 
         // Кнопка глобуса для переключения языков
         btnLanguage.setOnClickListener {
+            updateRippleColor(it)
             if (!isSymbols) {
                 toggleLanguage()
             }
@@ -142,6 +154,21 @@ class MyKeyboardService : InputMethodService() {
         updateKeyboardLayout()
 
         return view
+    }
+
+    // Метод для поочередной смены цвета ripple-эффекта (оранжевый ⇄ синий)
+    private fun updateRippleColor(view: View) {
+        isRippleOrange = !isRippleOrange
+        val colorInt = if (isRippleOrange) {
+            Color.parseColor("#80FF6600") // Оранжевый
+        } else {
+            Color.parseColor("#800026FF") // Синий
+        }
+
+        val background = view.background
+        if (background is RippleDrawable) {
+            background.setColor(ColorStateList.valueOf(colorInt))
+        }
     }
 
     private fun triggerAlarm() {
@@ -228,6 +255,8 @@ class MyKeyboardService : InputMethodService() {
                 setTextColor(Color.WHITE)
                 textSize = 17f
                 setOnClickListener {
+                    // Меняем цвет анимации нажатия при каждом клике
+                    updateRippleColor(it)
                     currentInputConnection?.commitText(displayChar, 1)
                 }
             }
