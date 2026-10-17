@@ -18,7 +18,7 @@ class MyKeyboardService : InputMethodService() {
     private var mediaPlayer: MediaPlayer? = null
 
     // Список запрещенных слов для мгновенной очистки и воспроизведения звука
-    private val triggerWords = listOf("трахает", "гей", "поза", "рака", "блять", "сука", "fuck", "бля", "traxaet")
+    private val triggerWords = listOf("трахает", "гей", "поза", "рака", "блять", "сука", "fuck", "бля", "traxaet", "дрочит", "секс", "сэкс", "seks", "drocit", "drochit", "blya", "bla", "sperma", "сперма", "кот дремот", "cat nap", "dog day", "kot dremot", "кет неп", "кэт неп", "дог дей", "дог дэй", "18+", "+18", "17+", "+17", "vosemnadcach plus", "plus vosemnadcach", "восемнадцать плюс", "плюс восемнадцать", "восемнадцать", "18")
 
     private enum class Language { RU, HY, EN }
     private var currentLanguage = Language.RU
